@@ -7,8 +7,6 @@ chroot/*
 config/*
 images
 local/*
-simple-cdd/images/*
-simple-cdd/tmp/*
 
 # Files
 .mirror
@@ -26,10 +24,6 @@ live-image-*.files
 live-image-*.hybrid.iso.zsync
 live-image-*.packages
 wget-log*
-
-# Overwritten due to build.sh
-simple-cdd/debian-cd/*
-simple-cdd/profiles/kali.downloads
 
 # Miscellaneous
 .lock

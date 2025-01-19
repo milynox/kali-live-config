@@ -9,7 +9,6 @@ set -o pipefail # Bashism
 KALI_DIST="kali-rolling"
 KALI_VERSION=""
 KALI_VARIANT="default"
-IMAGE_TYPE="live"
 TARGET_DIR="$(dirname $0)/images"
 TARGET_SUBDIR=""
 SUDO="sudo"
@@ -18,17 +17,6 @@ DEBUG=""
 HOST_ARCH=$(dpkg --print-architecture)
 
 image_name() {
-	case "$IMAGE_TYPE" in
-		live)
-			live_image_name
-		;;
-		installer)
-			installer_image_name
-		;;
-	esac
-}
-
-live_image_name() {
 	case "$KALI_ARCH" in
 		i386|amd64|arm64)
 			echo "live-image-$KALI_ARCH.hybrid.iso"
@@ -39,14 +27,6 @@ live_image_name() {
 	esac
 }
 
-installer_image_name() {
-	if [ "$KALI_VARIANT" = "netinst" ]; then
-		echo "simple-cdd/images/kali-$KALI_VERSION-$KALI_ARCH-NETINST-1.iso"
-	else
-		echo "simple-cdd/images/kali-$KALI_VERSION-$KALI_ARCH-BD-1.iso"
-	fi
-}
-
 target_image_name() {
 	local arch=$1
 
@@ -55,18 +35,10 @@ target_image_name() {
 	if [ "$IMAGE_EXT" = "$IMAGE_NAME" ]; then
 		IMAGE_EXT="img"
 	fi
-	if [ "$IMAGE_TYPE" = "live" ]; then
-		if [ "$KALI_VARIANT" = "default" ]; then
-			echo "${TARGET_SUBDIR:+$TARGET_SUBDIR/}kali-linux-$KALI_VERSION-live-$KALI_ARCH.$IMAGE_EXT"
-		else
-			echo "${TARGET_SUBDIR:+$TARGET_SUBDIR/}kali-linux-$KALI_VERSION-live-$KALI_VARIANT-$KALI_ARCH.$IMAGE_EXT"
-		fi
+	if [ "$KALI_VARIANT" = "default" ]; then
+		echo "${TARGET_SUBDIR:+$TARGET_SUBDIR/}kali-linux-$KALI_VERSION-live-$KALI_ARCH.$IMAGE_EXT"
 	else
-		if [ "$KALI_VARIANT" = "default" ]; then
-			echo "${TARGET_SUBDIR:+$TARGET_SUBDIR/}kali-linux-$KALI_VERSION-installer-$KALI_ARCH.$IMAGE_EXT"
-		else
-			echo "${TARGET_SUBDIR:+$TARGET_SUBDIR/}kali-linux-$KALI_VERSION-installer-$KALI_VARIANT-$KALI_ARCH.$IMAGE_EXT"
-		fi
+		echo "${TARGET_SUBDIR:+$TARGET_SUBDIR/}kali-linux-$KALI_VERSION-live-$KALI_VARIANT-$KALI_ARCH.$IMAGE_EXT"
 	fi
 }
 
@@ -87,7 +59,7 @@ default_version() {
 }
 
 failure() {
-	echo "Build of $KALI_DIST/$KALI_VARIANT/$KALI_ARCH $IMAGE_TYPE image failed (see build.log for details)" >&2
+	echo "Build of $KALI_DIST/$KALI_VARIANT/$KALI_ARCH live image failed (see build.log for details)" >&2
 	echo "Log: $BUILD_LOG" >&2
 	exit 2
 }
@@ -115,17 +87,12 @@ debug() {
 clean() {
 	debug "Cleaning"
 
-	# Live
 	run_and_log $SUDO lb clean --purge
 	#run_and_log $SUDO umount -l $(pwd)/chroot/proc
 	#run_and_log $SUDO umount -l $(pwd)/chroot/dev/pts
 	#run_and_log $SUDO umount -l $(pwd)/chroot/sys
 	#run_and_log $SUDO rm -rf $(pwd)/chroot
 	#run_and_log $SUDO rm -rf $(pwd)/binary
-
-	# Installer
-	run_and_log $SUDO rm -rf "$(pwd)/simple-cdd/tmp"
-	run_and_log $SUDO rm -rf "$(pwd)/simple-cdd/debian-cd"
 }
 
 print_help() {
@@ -177,8 +144,6 @@ while true; do
 		-D|--debug) DEBUG="1"; shift 1; ;;
 		-s|--salt) shift; ;;
 		-h|--help) print_help; ;;
-		--installer) IMAGE_TYPE="installer"; shift 1 ;;
-		--live) IMAGE_TYPE="live"; shift 1 ;;
 		--variant) KALI_VARIANT="$2"; shift 2; ;;
 		--version) KALI_VERSION="$2"; shift 2; ;;
 		--subdir) TARGET_SUBDIR="$2"; shift 2; ;;
@@ -206,7 +171,7 @@ debug "KALI_VERSION: $KALI_VERSION"
 
 # Check parameters
 debug "HOST_ARCH: $HOST_ARCH"
-if [ "$HOST_ARCH" != "$KALI_ARCH" ] && [ "$IMAGE_TYPE" != "installer" ]; then
+if [ "$HOST_ARCH" != "$KALI_ARCH" ]; then
 	case "$HOST_ARCH/$KALI_ARCH" in
 		amd64/i386|i386/amd64)
 		;;
@@ -219,13 +184,11 @@ fi
 
 # Build parameters for lb config
 KALI_CONFIG_OPTS="--distribution $KALI_DIST -- --variant $KALI_VARIANT"
-CODENAME=$KALI_DIST # for simple-cdd/debian-cd
 if [ -n "$OPT_pu" ]; then
 	KALI_CONFIG_OPTS="$KALI_CONFIG_OPTS --proposed-updates"
 	KALI_DIST="$KALI_DIST+pu"
 fi
 debug "KALI_CONFIG_OPTS: $KALI_CONFIG_OPTS"
-debug "CODENAME: $CODENAME"
 debug "KALI_DIST: $KALI_DIST"
 
 # Set sane PATH (cron seems to lack /sbin/ dirs)
@@ -240,27 +203,11 @@ else
 	echo "ERROR: Non Debian-based OS" >&2
 fi
 
-debug "IMAGE_TYPE: $IMAGE_TYPE"
-case "$IMAGE_TYPE" in
-	live)
-		if [ ! -d "$(dirname $0)/kali-config/variant-$KALI_VARIANT" ]; then
-			echo "ERROR: Unknown variant of Kali live configuration: $KALI_VARIANT" >&2
-		fi
-		require_package live-build "1:20230502+kali4"
-		require_package debootstrap "1.0.97"
-	;;
-	installer)
-		if [ ! -d "$(dirname $0)/kali-config/installer-$KALI_VARIANT" ]; then
-			echo "ERROR: Unknown variant of Kali installer configuration: $KALI_VARIANT" >&2
-		fi
-		require_package debian-cd "3.2.1+kali1"
-		require_package simple-cdd "0.6.9"
-	;;
-	*)
-		echo "ERROR: Unsupported IMAGE_TYPE selected ($IMAGE_TYPE)" >&2
-		exit 1
-	;;
-esac
+if [ ! -d "$(dirname $0)/kali-config/variant-$KALI_VARIANT" ]; then
+	echo "ERROR: Unknown variant of Kali live configuration: $KALI_VARIANT" >&2
+fi
+require_package live-build "1:20230502+kali4"
+require_package debootstrap "1.0.97"
 
 # We need root rights at some point
 if [ "$(whoami)" != "root" ]; then
@@ -295,109 +242,15 @@ mkdir -p $TARGET_DIR/$TARGET_SUBDIR
 # Don't quit on any errors now
 set +e
 
-case "$IMAGE_TYPE" in
-	live)
-		debug "Stage 1/2 - Config"
-		run_and_log lb config -a $KALI_ARCH $KALI_CONFIG_OPTS "$@"
-		[ $? -eq 0 ] || failure
+debug "Stage 1/2 - Config"
+run_and_log lb config -a $KALI_ARCH $KALI_CONFIG_OPTS "$@"
+[ $? -eq 0 ] || failure
 
-		debug "Stage 2/2 - Build"
-		run_and_log $SUDO lb build
-		if [ $? -ne 0 ] || [ ! -e $IMAGE_NAME ]; then
-			failure
-		fi
-	;;
-	installer)
-		# Override some debian-cd environment variables
-		export BASEDIR="$(pwd)/simple-cdd/debian-cd"
-		export ARCHES=$KALI_ARCH
-		export ARCH=$KALI_ARCH
-		export DEBVERSION=$KALI_VERSION
-		debug "BASEDIR: $BASEDIR"
-		debug "ARCHES: $ARCHES"
-		debug "ARCH: $ARCH"
-		debug "DEBVERSION: $DEBVERSION"
-
-		if [ "$KALI_VARIANT" = "netinst" ]; then
-			export DISKTYPE="NETINST"
-			profiles="kali"
-			auto_profiles="kali"
-		elif [ "$KALI_VARIANT" = "purple" ]; then
-			export DISKTYPE="BD"
-			profiles="kali kali-purple offline"
-			auto_profiles="kali kali-purple offline"
-			export KERNEL_PARAMS="debian-installer/theme=Clearlooks-Purple"
-		else    # plain installer
-			export DISKTYPE="BD"
-			profiles="kali offline"
-			auto_profiles="kali offline"
-		fi
-		debug "DISKTYPE: $DISKTYPE"
-		debug "profiles: $profiles"
-		debug "auto_profiles: $auto_profiles"
-		[ -v KERNEL_PARAMS ] && debug "KERNEL_PARAMS: $KERNEL_PARAMS"
-
-		if [ -e .mirror ]; then
-			kali_mirror=$(cat .mirror)
-		else
-			kali_mirror=http://kali.download/kali/
-		fi
-		if ! echo "$kali_mirror" | grep -q '/$'; then
-			kali_mirror="$kali_mirror/"
-		fi
-		debug "kali_mirror: $kali_mirror"
-
-		debug "Stage 1/2 - File(s)"
-		# Setup custom debian-cd to make our changes
-		cp -aT /usr/share/debian-cd simple-cdd/debian-cd
-		[ $? -eq 0 ] || failure
-
-		# Use the same grub theme as in the live images
-		# Until debian-cd is smart enough: http://bugs.debian.org/1003927
-		cp -f kali-config/common/bootloaders/grub-pc/grub-theme.in simple-cdd/debian-cd/data/$CODENAME/grub-theme.in
-
-		# Keep 686-pae udebs as we changed the default from 686
-		# to 686-pae in the debian-installer images
-		sed -i -e '/686-pae/d' \
-			simple-cdd/debian-cd/data/$CODENAME/exclude-udebs-i386
-		[ $? -eq 0 ] || failure
-
-		# Configure the kali profile with the packages we want
-		grep -v '^#' kali-config/installer-$KALI_VARIANT/packages \
-			> simple-cdd/profiles/kali.downloads
-		[ $? -eq 0 ] || failure
-
-		# Tasksel is required in the mirror for debian-cd
-		echo tasksel >> simple-cdd/profiles/kali.downloads
-		[ $? -eq 0 ] || failure
-
-		# Grub is the only supported bootloader on arm64
-		# so ensure it's on the iso for arm64.
-		if [ "$KALI_ARCH" = "arm64" ]; then
-			debug "arm64 GRUB"
-			echo "grub-efi-arm64" >> simple-cdd/profiles/kali.downloads
-			[ $? -eq 0 ] || failure
-		fi
-
-		# Run simple-cdd
-		debug "Stage 2/2 - Build"
-		cd simple-cdd/
-		run_and_log build-simple-cdd \
-			--verbose \
-			--debug \
-			--force-root \
-			--conf simple-cdd.conf \
-			--dist $CODENAME \
-			--debian-mirror $kali_mirror \
-			--profiles "$profiles" \
-			--auto-profiles "$auto_profiles"
-		res=$?
-		cd ../
-		if [ $res -ne 0 ] || [ ! -e $IMAGE_NAME ]; then
-			failure
-		fi
-	;;
-esac
+debug "Stage 2/2 - Build"
+run_and_log $SUDO lb build
+if [ $? -ne 0 ] || [ ! -e $IMAGE_NAME ]; then
+	failure
+fi
 
 # If a command fails, make the whole script exit
 set -e
