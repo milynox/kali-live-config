@@ -1,31 +1,15 @@
-# Directories
-.build/*
-binary/*
-binary.*/*
-cache/*
-chroot/*
-config/*
+## Directories
+.build/
+cache/
+chroot/
+## `lb` will generate this folder, `config`
+##   Which is why our config directory is called `kali-config`
+config/
+## Incase symlink, no slash
 images
-local/*
 
-# Files
-.mirror
-binary.modified_timestamps
-build.log
-chroot.files
-chroot.packages.install
-chroot.packages.live
-config/binary
-config/bootstrap
-config/common
-config/source
-live-image-*.contents
-live-image-*.files
-live-image-*.hybrid.iso.zsync
-live-image-*.packages
-wget-log*
-
-# Miscellaneous
+## Files
 .lock
-.stage
-prepare.log
+.mirror
+build.log
+wget-log*
