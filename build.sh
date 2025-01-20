@@ -16,6 +16,8 @@ VERBOSE=""
 DEBUG=""
 HOST_ARCH=$(dpkg --print-architecture)
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 image_name() {
   case "$KALI_ARCH" in
     i386|amd64|arm64)
@@ -87,7 +89,7 @@ debug() {
 clean() {
   debug "Cleaning"
 
-  run_and_log $SUDO lb clean --purge
+  run_and_log $SUDO lb clean --purge # ./auto/clean
   #run_and_log $SUDO umount -l $(pwd)/chroot/proc
   #run_and_log $SUDO umount -l $(pwd)/chroot/dev/pts
   #run_and_log $SUDO umount -l $(pwd)/chroot/sys
@@ -124,9 +126,12 @@ require_package() {
   debug "$pkg version: $pkg_version"
 }
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 # Allowed command line options
 . $(dirname $0)/.getopt.sh
 
+# Define log file
 BUILD_LOG="$(pwd)/build.log"
 debug "BUILD_LOG: $BUILD_LOG"
 # Create empty file
@@ -236,17 +241,18 @@ if [ "$ACTION" = "clean" ]; then
 fi
 
 cd $(dirname $0)
+# Create image output location
 mkdir -p $TARGET_DIR/$TARGET_SUBDIR
 
 # Don't quit on any errors now
 set +e
 
-debug "Stage 1/2 - Config"
+debug "Stage 1/2 - Config" # ./auto/config
 run_and_log lb config -a $KALI_ARCH $KALI_CONFIG_OPTS "$@"
 [ $? -eq 0 ] || failure
 
 debug "Stage 2/2 - Build"
-run_and_log $SUDO lb build
+run_and_log $SUDO lb build # ./auto/build... but missing for us
 if [ $? -ne 0 ] || [ ! -e $IMAGE_NAME ]; then
   failure
 fi
