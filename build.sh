@@ -128,14 +128,16 @@ require_package() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# Allowed command line options
-. $(dirname $0)/.getopt.sh
+# Change directory into where the script is
+cd $(dirname $0)/
 
 # Define log file
 BUILD_LOG="$(pwd)/build.log"
 debug "BUILD_LOG: $BUILD_LOG"
 # Create empty file
 : > "$BUILD_LOG"
+# Allowed command line options
+source .getopt.sh
 
 # Parsing command line options (see .getopt.sh)
 temp=$(getopt -o "$BUILD_OPTS_SHORT" -l "$BUILD_OPTS_LONG,get-image-path" -- "$@")
@@ -240,7 +242,6 @@ if [ "$ACTION" = "clean" ]; then
   exit 0
 fi
 
-cd $(dirname $0)
 # Create image output location
 mkdir -pv $TARGET_DIR/$TARGET_SUBDIR
 [ $? -eq 0 ] || failure
