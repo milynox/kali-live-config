@@ -183,7 +183,7 @@ if [ "$HOST_ARCH" != "$KALI_ARCH" ]; then
     amd64/i386|i386/amd64)
     ;;
     *)
-      echo "Can't build $KALI_ARCH image on $HOST_ARCH system." >&2
+      echo "Can't build $KALI_ARCH image on $HOST_ARCH system" >&2
       exit 1
     ;;
   esac
