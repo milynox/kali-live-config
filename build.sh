@@ -242,7 +242,8 @@ fi
 
 cd $(dirname $0)
 # Create image output location
-mkdir -p $TARGET_DIR/$TARGET_SUBDIR
+mkdir -pv $TARGET_DIR/$TARGET_SUBDIR
+[ $? -eq 0 ] || failure
 
 # Don't quit on any errors now
 set +e
