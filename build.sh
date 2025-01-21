@@ -142,7 +142,6 @@ while true; do
 		-a|--arch) KALI_ARCH="$2"; shift 2; ;;
 		-v|--verbose) VERBOSE="1"; shift 1; ;;
 		-D|--debug) DEBUG="1"; shift 1; ;;
-		-s|--salt) shift; ;;
 		-h|--help) print_help; ;;
 		--variant) KALI_VARIANT="$2"; shift 2; ;;
 		--version) KALI_VERSION="$2"; shift 2; ;;

@@ -4,7 +4,6 @@
 # -a | --arch <architecture>
 # -v | --verbose
 # -D | --debug
-# -s | --salt
 # -h | --help
 #      --variant <variant>
 #      --version <version>
@@ -13,5 +12,5 @@
 #      --no-clean
 #      --clean
 
-BUILD_OPTS_SHORT="d:pa:vDsh"
-BUILD_OPTS_LONG="distribution:,proposed-updates,arch:,verbose,debug,salt,variant:,version:,subdir:,get-image-path,no-clean,clean,help"
+BUILD_OPTS_SHORT="d:pa:vDh"
+BUILD_OPTS_LONG="distribution:,proposed-updates,arch:,verbose,debug,variant:,version:,subdir:,get-image-path,no-clean,clean,help"

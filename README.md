@@ -32,7 +32,6 @@ Usage: ./build.sh [<option>...]
   --arch <arg>
   --verbose
   --debug
-  --salt
   --variant <arg>
   --version <arg>
   --subdir <arg>
