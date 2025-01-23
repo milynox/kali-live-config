@@ -3,11 +3,11 @@
 configure_zsh() {
     # Stop if zsh is not present
     if [ ! -x /usr/bin/zsh ]; then
-	return
+        return
     fi
     # Stop if user has opted out of zsh
     if echo "${LIVE_CONFIG_CMDLINE}" | grep -qs 'nozsh'; then
-	return
+        return
     fi
     chsh --shell /usr/bin/zsh kali
     chsh --shell /usr/bin/zsh root
@@ -26,8 +26,8 @@ configure_usergroups() {
     kali_groups="adm dialout kaboxer vboxsf wireshark"
 
     for grp in $kali_groups; do
-	getent group $grp >/dev/null || continue
-	usermod -a -G $grp kali
+        getent group $grp >/dev/null || continue
+        usermod -a -G $grp kali
     done
 }
 
@@ -37,9 +37,9 @@ pkg_installed() {
 
 configure_terminal() {
     while read -r desktop terminal; do
-	pkg_installed kali-desktop-$desktop || continue
-	update-alternatives --verbose --set x-terminal-emulator /usr/bin/$terminal || true
-	break
+        pkg_installed kali-desktop-$desktop || continue
+        update-alternatives --verbose --set x-terminal-emulator /usr/bin/$terminal || true
+        break
     done <<END
 e17   terminology
 gnome gnome-terminal.wrapper
