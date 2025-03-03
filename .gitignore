@@ -1,12 +1,12 @@
 ## Directories
-.build/
-cache/
-chroot/
+/.build/
+/cache/
+/chroot/
 ## `lb` will generate this folder, `config`
 ##   Which is why our config directory is called `kali-config`
-config/
+/config/
 ## Incase symlink, no slash
-images
+/images
 
 ## Files
 .lock
