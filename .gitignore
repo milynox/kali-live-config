@@ -5,7 +5,7 @@
 ## `lb` will generate this folder, `config`
 ##   Which is why our config directory is called `kali-config`
 /config/
-## Incase symlink, no slash
+## In case symlink, no slash
 /images
 
 ## Files
