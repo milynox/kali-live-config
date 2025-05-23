@@ -4,4 +4,8 @@ apt -y remove desktop-base tango-icon-theme xorg
 # Kali 2025.1: live image is too big, remove texlive-latex-extra,
 # as it's not a hard dependency, only a Recommends of gvmd-common
 apt -y remove texlive-latex-extra
+# NVidia GSP firmware should be removed by live-build, but this one
+# slipped through. Drop this line when we have this change in live-build:
+# https://salsa.debian.org/live-team/live-build/-/merge_requests/422
+apt -y remove firmware-nvidia-tesla-535-gsp
 apt -y autoremove
