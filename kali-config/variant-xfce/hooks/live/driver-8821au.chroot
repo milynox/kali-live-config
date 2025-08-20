@@ -1,0 +1,14 @@
+#!/bin/bash
+set -e
+
+echo "[+] Cloning 8821au driver..."
+cd /usr/src
+git clone https://github.com/morrownr/8821au-20210708
+cd 8821au-20210708
+
+chmod +x install-driver.sh
+
+echo "[+] Running driver installation..."
+sudo ./install-driver.sh
+
+echo "[+] Driver installation complete."
