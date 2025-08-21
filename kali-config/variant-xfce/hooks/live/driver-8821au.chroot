@@ -1,14 +1,15 @@
 #!/bin/bash
 set -e
+export DEBIAN_FRONTEND=noninteractive
 
 echo "[+] Cloning 8821au driver..."
 cd /usr/src
-git clone https://github.com/morrownr/8821au-20210708
+git clone https://github.com/milynox/8821au-20210708.git
 cd 8821au-20210708
 
 chmod +x install-driver.sh
 
 echo "[+] Running driver installation..."
-sudo ./install-driver.sh
+sudo ./install-driver.sh NoPrompt
 
 echo "[+] Driver installation complete."
